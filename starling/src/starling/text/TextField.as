@@ -91,39 +91,41 @@ package starling.text
         // the name container with the registered bitmap fonts
         private static const BITMAP_FONT_DATA_NAME:String = "starling.display.TextField.BitmapFonts";
 
+
         // the texture format that is used for TTF rendering
         private static var sDefaultTextureFormat:String =
             "BGRA_PACKED" in Context3DTextureFormat ? "bgraPacked4444" : "bgra";
 
-        private var mFontSize:Number;
-        private var mColor:uint;
-        private var mText:String;
-        private var mFontName:String;
-        private var mHAlign:String;
-        private var mVAlign:String;
-        private var mBold:Boolean;
-        private var mItalic:Boolean;
-        private var mUnderline:Boolean;
-        private var mAutoScale:Boolean;
-        private var mAutoSize:String;
-        private var mKerning:Boolean;
-        private var mLeading:Number;
-        private var mNativeFilters:Array;
-        private var mRequiresRedraw:Boolean;
-        private var mIsHtmlText:Boolean;
-        private var mTextBounds:Rectangle;
-        private var mBatchable:Boolean;
-        
-        private var mHitArea:Rectangle;
+        protected var mFontSize:Number;
+        protected var mColor:uint;
+        protected var mText:String;
+        protected var mFontName:String;
+        protected var mHAlign:String;
+        protected var mVAlign:String;
+        protected var mBold:Boolean;
+        protected var mItalic:Boolean;
+        protected var mUnderline:Boolean;
+        protected var mAutoScale:Boolean;
+        protected var mAutoSize:String;
+        protected var mKerning:Boolean;
+        protected var mLeading:Number;
+        protected var mNativeFilters:Array;
+        protected var mRequiresRedraw:Boolean;
+        protected var mIsHtmlText:Boolean;
+        protected var mTextBounds:Rectangle;
+        protected var mBatchable:Boolean;
+
+        protected var mHitArea:Rectangle;
+
         private var mBorder:DisplayObjectContainer;
         
-        private var mImage:Image;
-        private var mQuadBatch:QuadBatch;
+        protected var mImage:Image;
+        protected var mQuadBatch:QuadBatch;
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
-        private static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
-        
+        protected static var sNativeTextField:flash.text.TextField = new flash.text.TextField();
+
         /** Create a new text field with the given properties. */
         public function TextField(width:int, height:int, text:String, fontName:String="Verdana",
                                   fontSize:Number=12, color:uint=0x0, bold:Boolean=false)
@@ -178,10 +180,10 @@ package starling.text
                 mRequiresRedraw = false;
             }
         }
-        
+
         // TrueType font rendering
         
-        private function createRenderedContents():void
+        protected function createRenderedContents():void
         {
             if (mQuadBatch)
             {
@@ -350,8 +352,8 @@ package starling.text
             
             return bitmapData;
         }
-        
-        private function autoScaleNativeTextField(textField:flash.text.TextField):void
+
+        protected function autoScaleNativeTextField(textField:flash.text.TextField):void
         {
             var size:Number   = Number(textField.defaultTextFormat.size);
             var maxHeight:int = textField.height - 4;
@@ -413,9 +415,9 @@ package starling.text
             return resultOffset;
         }
         
+        protected function createComposedContents():void
         // bitmap font composition
         
-        private function createComposedContents():void
         {
             if (mImage) 
             {
@@ -495,16 +497,14 @@ package starling.text
             bottomLine.y = height - 1;
             topLine.color = rightLine.color = bottomLine.color = leftLine.color = mColor;
         }
-        
-        // properties
-        
-        private function get isHorizontalAutoSize():Boolean
+
+        protected function get isHorizontalAutoSize():Boolean
         {
             return mAutoSize == TextFieldAutoSize.HORIZONTAL || 
                    mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
         }
         
-        private function get isVerticalAutoSize():Boolean
+        protected function get isVerticalAutoSize():Boolean
         {
             return mAutoSize == TextFieldAutoSize.VERTICAL || 
                    mAutoSize == TextFieldAutoSize.BOTH_DIRECTIONS;
@@ -811,7 +811,7 @@ package starling.text
         
         /** Stores the currently available bitmap fonts. Since a bitmap font will only work
          *  in one Stage3D context, they are saved in Starling's 'contextData' property. */
-        private static function get bitmapFonts():Dictionary
+        protected static function get bitmapFonts():Dictionary
         {
             var fonts:Dictionary = Starling.current.contextData[BITMAP_FONT_DATA_NAME] as Dictionary;
             
