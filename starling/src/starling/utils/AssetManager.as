@@ -1010,13 +1010,18 @@ package starling.utils
             {
                 var bytes:ByteArray = transformData(urlLoader.data as ByteArray, url);
                 var sound:Sound;
-
                 if (bytes == null)
                 {
                     complete(null);
                     return;
                 }
-                
+
+                var canCloseLoader:Boolean = true;
+                urlLoader.removeEventListener(IOErrorEvent.IO_ERROR, onIoError);
+                urlLoader.removeEventListener(HTTP_RESPONSE_STATUS, onHttpResponseStatus);
+                urlLoader.removeEventListener(ProgressEvent.PROGRESS, onLoadProgress);
+                urlLoader.removeEventListener(Event.COMPLETE, onUrlLoaderComplete);
+
                 if (extension)
                     extension = extension.toLowerCase();
 
@@ -1040,16 +1045,33 @@ package starling.utils
                         loaderInfo.addEventListener(IOErrorEvent.IO_ERROR, onIoError);
                         loaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
                         loader.loadBytes(bytes, loaderContext);
+                        canCloseLoader = false;
                         break;
                     default: // any XML / JSON / binary data 
                         complete(bytes);
                         break;
+                }
+
+                if(canCloseLoader) {
+                    try {
+                        urlLoader.close();
+                    }
+                    catch (e:Error) {
+                    }
+                    urlLoader = null;
                 }
             }
             
             function onLoaderComplete(event:Object):void
             {
                 urlLoader.data.clear();
+                try {
+                    urlLoader.close();
+                }
+                catch (e:Error) {
+                }
+                urlLoader = null;
+                event.target.removeEventListener(Event.COMPLETE, onLoaderComplete);
                 complete(event.target.content);
             }
             
