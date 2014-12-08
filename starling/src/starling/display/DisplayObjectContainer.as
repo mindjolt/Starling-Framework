@@ -65,7 +65,9 @@ package starling.display
     public class DisplayObjectContainer extends DisplayObject
     {
         // members
+
         private var mChildren:Vector.<DisplayObject>;
+        private var mTouchGroup:Boolean;
         
         /** Helper objects. */
         private static var sHelperMatrix:Matrix = new Matrix();
@@ -112,20 +114,27 @@ package starling.display
             
             if (index >= 0 && index <= numChildren)
             {
-                child.removeFromParent();
-                
-                // 'splice' creates a temporary object, so we avoid it if it's not necessary
-                if (index == numChildren) mChildren.push(child);
-                else                      mChildren.splice(index, 0, child);
-                
-                child.setParent(this);
-                child.dispatchEventWith(Event.ADDED, true);
-                
-                if (stage)
+                if (child.parent == this)
                 {
-                    var container:DisplayObjectContainer = child as DisplayObjectContainer;
-                    if (container) container.broadcastEventWith(Event.ADDED_TO_STAGE);
-                    else           child.dispatchEventWith(Event.ADDED_TO_STAGE);
+                    setChildIndex(child, index); // avoids dispatching events
+                }
+                else
+                {
+                    child.removeFromParent();
+                    
+                    // 'splice' creates a temporary object, so we avoid it if it's not necessary
+                    if (index == numChildren) mChildren[numChildren] = child;
+                    else                      mChildren.splice(index, 0, child);
+                    
+                    child.setParent(this);
+                    child.dispatchEventWith(Event.ADDED, true);
+                    
+                    if (stage)
+                    {
+                        var container:DisplayObjectContainer = child as DisplayObjectContainer;
+                        if (container) container.broadcastEventWith(Event.ADDED_TO_STAGE);
+                        else           child.dispatchEventWith(Event.ADDED_TO_STAGE);
+                    }
                 }
                 
                 return child;
@@ -214,6 +223,7 @@ package starling.display
         public function setChildIndex(child:DisplayObject, index:int):void
         {
             var oldIndex:int = getChildIndex(child);
+            if (oldIndex == index) return;
             if (oldIndex == -1) throw new ArgumentError("Not a child of this container");
             mChildren.splice(oldIndex, 1);
             mChildren.splice(index, 0, child);
@@ -302,19 +312,21 @@ package starling.display
             if (forTouch && (!visible || !touchable))
                 return null;
             
+            var target:DisplayObject = null;
             var localX:Number = localPoint.x;
             var localY:Number = localPoint.y;
-            
             var numChildren:int = mChildren.length;
+
             for (var i:int=numChildren-1; i>=0; --i) // front to back!
             {
                 var child:DisplayObject = mChildren[i];
                 getTransformationMatrix(child, sHelperMatrix);
                 
                 MatrixUtil.transformCoords(sHelperMatrix, localX, localY, sHelperPoint);
-                var target:DisplayObject = child.hitTest(sHelperPoint, forTouch);
+                target = child.hitTest(sHelperPoint, forTouch);
                 
-                if (target) return target;
+                if (target)
+                    return forTouch && mTouchGroup ? this : target;
             }
             
             return null;
@@ -381,6 +393,13 @@ package starling.display
         /** The number of children of this container. */
         public function get numChildren():int { return mChildren.length; }
         
+        /** If a container is a 'touchGroup', it will act as a single touchable object.
+         *  Touch events will have the container as target, not the touched child.
+         *  (Similar to 'mouseChildren' in the classic display list, but with inverted logic.)
+         *  @default false */
+        public function get touchGroup():Boolean { return mTouchGroup; }
+        public function set touchGroup(value:Boolean):void { mTouchGroup = value; }
+
         // helpers
         
         private static function mergeSort(input:Vector.<DisplayObject>, compareFunc:Function, 
@@ -429,13 +448,14 @@ package starling.display
             }
         }
         
-        private function getChildEventListeners(object:DisplayObject, eventType:String, 
-                                                listeners:Vector.<DisplayObject>):void
+        /** @private */
+        internal function getChildEventListeners(object:DisplayObject, eventType:String, 
+                                                 listeners:Vector.<DisplayObject>):void
         {
             var container:DisplayObjectContainer = object as DisplayObjectContainer;
             
             if (object.hasEventListener(eventType))
-                listeners.push(object);
+                listeners[listeners.length] = object; // avoiding 'push'                
             
             if (container)
             {
