@@ -1,5 +1,7 @@
 package starling.utils
 {
+//import com.sgn.webp.DecodeWebP;
+
 import flash.display.Bitmap;
 import flash.display.Loader;
 import flash.display.LoaderInfo;
@@ -1003,6 +1005,10 @@ public class AssetManager extends EventDispatcher
                     loaderInfo.addEventListener(Event.COMPLETE, onLoaderComplete);
                     loader.loadBytes(bytes, loaderContext);
                     break;
+                /*case "webp":
+                    complete(new Bitmap(DecodeWebP(bytes, 0)));
+                    break;
+                */
                 default: // any XML / JSON / binary data 
                     complete(bytes);
                     break;
