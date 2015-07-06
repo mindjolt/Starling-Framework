@@ -42,6 +42,7 @@ package starling.utils
     import starling.textures.Texture;
     import starling.textures.TextureAtlas;
     import starling.textures.TextureOptions;
+    //import com.sgn.webp.DecodeWebP;
     
     /** Dispatched when all textures have been restored after a context loss. */
     [Event(name="texturesRestored", type="starling.events.Event")]
@@ -1047,6 +1048,10 @@ package starling.utils
                         loader.loadBytes(bytes, loaderContext);
                         canCloseLoader = false;
                         break;
+                    /*case "webp":
+                        complete(new Bitmap(DecodeWebP(bytes, 0)));
+                        break;
+                     */
                     default: // any XML / JSON / binary data 
                         complete(bytes);
                         break;
